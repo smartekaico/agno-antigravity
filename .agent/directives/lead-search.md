@@ -2,46 +2,47 @@
 
 ## Goal
 
-Automate the discovery of potential leads using Serper.dev based on defined criteria (Industry, Position, Location) and populate the "Leads_Master" sheet.
+Automate the discovery and enrichment of leads using specific pipelines based on the target niche.
+
+## Search Strategies
+
+### 1. Local Business (Retail, Gyms, Restaurants)
+
+- **Focus:** Instagram presence & physical location.
+- **Pipeline:**
+  1.  **Discovery**: Google Maps (Serper) -> Business Name, Address, Website.
+  2.  **Qualification**: Check Website for IG link OR Google Search `site:instagram.com`.
+  3.  **Enrichment**: Apify Instagram Scraper -> Followers, Bio, Email.
+  4.  **Edge Case**: If "No IG", mark as low priority.
+
+### 2. B2B / Professional (IT, Healthcare, Consultants)
+
+- **Focus:** LinkedIn profiles & decision makers.
+- **Pipeline:**
+  1.  **Discovery**: Google X-Ray Search (Serper) -> `site:linkedin.com/in/ "{Role}" "{Industry}"`
+  2.  **Qualification**: Filter by "Current Role" match.
+  3.  **Enrichment**: Apify LinkedIn Scraper (or Visit Profile) -> Company, full bio.
+  4.  **Extension**: Find Company Website -> Look for corporate email.
 
 ## Inputs
 
-| Input          | Source                        | Required | Validation                |
-| -------------- | ----------------------------- | -------- | ------------------------- |
-| Industry       | Google Sheets (System_Config) | Yes      | Non-empty string          |
-| Position       | Google Sheets (System_Config) | Yes      | Non-empty string          |
-| Location       | Google Sheets (System_Config) | Yes      | Non-empty string          |
-| Exclusion List | Google Sheets (System_Config) | No       | List of domains/companies |
+| Input          | Source        | Required | Description                            |
+| :------------- | :------------ | :------- | :------------------------------------- |
+| **Strategy**   | System_Config | Yes      | `LOCAL` or `B2B`                       |
+| Niche/Industry | System_Config | Yes      | e.g., "Coffee Shop" or "Cybersecurity" |
+| Role           | System_Config | No       | e.g., "Owner" or "CTO" (B2B only)      |
+| Location       | System_Config | Yes      | Target city/region                     |
 
-## Skills
+## Skills & Tools
 
-| Skill             | Purpose                      | Trigger                  |
-| ----------------- | ---------------------------- | ------------------------ |
-| `serper-tool`     | Execute search queries       | Per criteria combination |
-| `sheet-reader`    | Read config parameters       | Start of workflow        |
-| `sheet-writer`    | Store new leads              | After deduplication      |
-| `email-extractor` | Extract emails from snippets | Post-search              |
+| Skill         | Purpose                                            | Configuration    |
+| :------------ | :------------------------------------------------- | :--------------- |
+| `serper-tool` | Discovery (Maps for Local, Google Search for B2B). | `SERPER_API_KEY` |
+| `crawl4ai`    | Qualification (Web scraping).                      | Local Skill      |
+| `apify`       | Enrichment (IG or LinkedIn scraping).              | `APIFY_TOKEN`    |
 
 ## Outputs
 
-| Output     | Format    | Destination                  |
-| ---------- | --------- | ---------------------------- |
-| New Leads  | Row Data  | Google Sheet: `Leads_Master` |
-| Search Log | Log Entry | Google Sheet: `System_Logs`  |
-
-## Edge Cases
-
-| Scenario         | Handling                                               |
-| ---------------- | ------------------------------------------------------ |
-| No results found | Log warning, proceed to next criteria                  |
-| API Rate Limit   | Pause execution, retry after backoff                   |
-| Duplicate Lead   | Check `email` OR (`name` + `company`). Skip if exists. |
-| Invalid API Key  | Alert user, halt execution                             |
-
-## Success Criteria
-
-- [ ] Search parameters correctly read from System_Config
-- [ ] Serper.dev API successfully queried
-- [ ] Results parsed and deduplicated against existing leads
-- [ ] New leads written to Leads_Master with status "new"
-- [ ] 0 Duplicates added
+| Output | Destination          | Fields                                                                       |
+| :----- | :------------------- | :--------------------------------------------------------------------------- |
+| Leads  | `Leads_Master` Sheet | Name, Role, Company, Website, Social URL, Email, Phone, **Type** (Local/B2B) |

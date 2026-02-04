@@ -16,10 +16,10 @@ Audit the current project structure against the `GEMINI.md` standard (Version 5.
 ## Steps
 
 - [x] Create branch `feature/001-audit`
-- [ ] Create `CHANGELOG.md`
-- [ ] Create `.agent/logs/` directory
-- [ ] Clean up legacy files (`AGENTS.md`, `CLAUDE.md`)
-- [ ] Verify structure
+- [x] Create `CHANGELOG.md`
+- [x] Create `.agent/logs/` directory
+- [x] Clean up legacy files (`AGENTS.md`, `CLAUDE.md`)
+- [x] Verify structure
 
 ## Files
 
